@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>クイズ検索</title>
+<style>
+    /* グローバルスタイル */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #121212;
+        color: #f0f0f0;
+        padding: 20px;
+        max-width: 800px;
+        margin: auto;
+    }
+
+    h1 {
+        text-align: center;
+        color: #00bcd4;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    /* 検索バーのスタイル */
+    #searchInput {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        border-radius: 25px;
+        border: none;
+        outline: none;
+        margin-bottom: 30px;
+        background-color: #1f1f1f;
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        transition: box-shadow 0.3s ease;
+    }
+
+    #searchInput:focus {
+        box-shadow: 0 6px 15px rgba(0, 188, 212, 0.5);
+    }
+
+    /* クイズカードのスタイル */
+    .quiz {
+        background-color: #1e1e1e;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
+    }
+
+    .quiz:hover {
+        transform: translateY(-5px);
+    }
+
+    .quiz img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        margin-top: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .question {
+        font-size: 18px;
+        font-weight: bold;
+        color: #00e5ff;
+    }
+
+    .answer {
+        font-size: 16px;
+        color: #b0bec5;
+        white-space: pre-wrap;
+        margin-top: 10px;
+    }
+
+    /* レスポンシブデザイン */
+    @media (max-width: 600px) {
+        #searchInput {
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        .question {
+            font-size: 16px;
+        }
+
+        .answer {
+            font-size: 14px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<h1>上中500円な</h1>
+<input type="text" id="searchInput" placeholder="カテゴリや質問で検索...">
+
+<div id="quizContainer"></div>
+
+<script>
+const quizData = {
+    "お笑い初級": [
+        {
+            "question": "M-1審査員10人すべて答えよ",
+            "answer": "1.松本人志 2.上沼恵美子 3.富澤たけし 4.ナイツ塙\n 5.立川志らく6.中田カウス 7.島田紳助\n8.山田邦子 9.オール巨人 10.博多大吉",
+            "image": "m-1.png"
+        }
+    ],
+    "お笑い上級": [
+        {
+            "question": "芸人の本名10人すべて答えよ",
+            "answer": "1.石川 晟也 2.佐々木直人 3.升野英知 \n 4.藤堂雄太 5.斎藤哲也 6.赤井 貴\n 7.金子 和令 \n8.宮園大耕生 9.中澤 滋紀 10.馬場えいと",
+            "image": "geinin.png"
+        }
+    ],
+    "野球": [
+        {
+            "question": "下の野球の球団すべて答えよ",
+            "answer": "1.東北楽天ゴールデンイーグルス 2,東京ヤクルトスワローズ 3.日ハム \n 4.広島カープ 5.読売ジャイアンツ 6.阪神タイガース \n 7.千葉ロッテ 8.ライオンズ 9.中日ドラゴンズ 10.オリックス",
+            "image": "yakyu.png"
+        }
+    ],
+    "漢字(中級)": [
+        {
+            "question": "これらの漢字の部首全て答えよ",
+            "answer": "1.ごんべん 2.にんべん 3.りっとう \n4.わかんむり　5.けものへん 6.こざと \n7.とりへん 8.なべぶた(けいさん) 9.のぎへん 10.にくずき",
+            "image": "20241111-1035_fd8e6ee28201d4988b3db90bd3e355b0.png"
+        },
+        {
+            "question": "これらの漢字一文字で表されている国全て答えよ",
+            "answer": "1.あめりか 2.いぎりす 3.いたりあ\n 4.いんど 5.おらんだ 6.かなだ \n7.すぺいん 8.ろしあ 9.どいつ 10.ふらんす",
+            "image": "20241111-1255_42a5b628d0747f3e0af475d08e92d29c.png"
+        },
+        {
+            "question": "これらの中華料理全て答えよ",
+            "answer": "1.ぎょうざ 2.しゅうまい 3.しょうろんぽう \n4.わんたん 5.ほいこーろー 6.らーめん \n7.ちゃーしゅー 8.ちんげんさい 9.チンジャオロースー 10.バンバンジー",
+            "image": "20241111-1416_53d05e5381cf96d641b0ca3c8853fc1a.png"
+        }
+    ],
+    "漢字(初級)": [
+        {
+            "question": "これらの漢字の部首全て答えよ",
+            "answer": "1.しめすへん 2.れっか(れんが) 3.おおざと \n4.しんにょう 5.さんずい 6.りっしんべん \n7.まだれ 8.はばへん(きんべん) 9.にすい 10.がんだれ",
+            "image": "20241111-1056_771869a37ce75c95c1436ed80d7aaa3e.png"
+        },
+        {
+            "question": "これらの魚の漢字全て答えよ",
+            "answer": "1.うなぎ 2.まぐろ 3.さけ \n4.かつお 5.こい 6.くじら \n7.たい 8.あゆ 9.さめ 10.さば",
+            "image": "20241111-1115_863b41186eaff62e853b0dbe1b2cffe2 (2).png"
+        },
+        {
+            "question": "これらの動物の漢字全て答えよ",
+            "answer": "1.うさぎ 2.いのしし 3.きつね \n4.ねずみ 5.かえる 6.かに\n 7.きりん 8.ありくい 9.あらいぐま 10.いか",
+            "image": "20241111-1226_2e6fbf38b8eedc401fb260c7a09f56bb.png"
+        },
+        {
+            "question": "これらの漢字で表される果物全て答えよ",
+            "answer": "1.いちご 2.りんご 3.れもん 4.さくらんぼ\n 5.パイナップル 6.バナナ 7.メロン\n 8.オレンジ 9.ぶどう 10.みかん",
+            "image": "20241111-1459_4bee75b1363a40edea3bac65c2ce3ac7.png"
+        },
+        {
+            "question": "これらの漢字で表されるスポーツ全て答えよ",
+            "answer": "1.野球 2.サッカー 3.バスケ 4.テニス\n 5.ドッチボール 6.バドミントン 7.ゴルフ\n 8.バレーボール 9.ボウリング 10.ラグビー",
+            "image": "20241111-1428_409a1f18cd4697d9f263576ae264a982.png"
+        }
+    ],
+    "漢字(上級)": [
+        {
+            "question": "これらの魚の漢字全て答えよ",
+            "answer": "1.ぶり 2.さわら 3.かれい \n4.ひらめ 5.ます 6.いわし\n 7.しゃち 8.たら 9.きす 10.あじ",
+            "image": "20241111-1126_b2f8ffc96f50dbe0f4c00420dcf3ddd8.png"
+        },
+        {
+            "question": "これらの動物の漢字全て答えよ",
+            "answer": "1.いるか 2.かば 3.くらげ \n4.さい 5.しまうま 6.たこ \n7.ぱんだ 8.やぎ 9.らっこ 10.もぐら",
+            "image": "20241111-1239_4e1e1f5bd5e2783eb90eda171a6f9277.png"
+        },
+        {
+            "question": "これらの漢字一文字で表されている国全て答えよ",
+            "answer": "1.あいすらんど 2.おーすとりあ 3.えじぷと\n 4.たい 5.ちり 6.べとなむ \n7.ふぃりぴん 8.とるこ 9.もんごる 10.ぽーらんど",
+            "image": "20241111-1310_ebe88178398c4cb759db2a6f28bbcd69.png"
+        }
+    ],
+    "ゲーム初級": [
+        {
+            "question": "アプリ名全て答えよ",
+            "answer": "1.パズドラ 2.モンスト 3.オセロニア 4.ブロスタ\n 5.ポケモンGO 6.原神 7.ツムツム \n8.ポケポケ 9.ぜんぜろ 10.魔剣伝説",
+            "image": "apuri.png"
+        },
+        {
+            "question": "ポケモンの名前を全て答えよ",
+            "answer": "1.ピカチュウ 2.コイキング 3.イーブイ 4.ポッチャマ \n5.ヒトカゲ 6.ゲンガー 7.カイリキー \n8.ゾロア 9.バシャーモ 10.びっぱ",
+            "image": "ポケ.png"
+        }
+    ],
+    "国旗初級": [
+        {
+            "question": "国を10個答えよ",
+            "answer": "1.アメリカ 2.中国 3.ドイツ 4.ネパール \n5.ブラジル 6.カナダ 7.ベトナム\n 8.フランス 9.チェコ 10.メキシコ",
+            "image": "kokki.png"
+        }
+    ],
+    "有名チェーン店初級": [
+        {
+            "question": "店名全て答えよ",
+            "answer": "1.マック 2.ロッテリア 3.サイゼリア 4.ドミノ\n 5.ケンタッキー 6.モスバーガー \n7.ミスド 8.スタバ 9.CoCo壱 10.銀だこ",
+            "image": "ロゴ.png"
+        }
+    ],
+    "音楽": [
+        {
+            "question": "カラオケで歌われているアーティスト TOP10(10月)すべて答えよ",
+            "answer": "1.ミセス 2.バックナンバー 3.あいみょん 4.Ado \n5.米須玄師 6.Vaundy 7.ひげだん\n8.優里 9.YOASOBI 10.サザンオールスターズ",
+            "image": "kara.png"
+        },
+        {
+            "question": "落暉の名前全て答えよ",
+            "answer": "1.トランペット 2.フルート 3.リコーダー 4.シンバル \n5.トライアングル 6.バイオリン 7.トロンボーン\n 8.カスタネット 9.カリンバ 10.オタマトーン",
+            "image": "rakki.png"
+        }
+    ],
+    "生物": [
+        {
+            "question": "深海生物10個すべて答えよ",
+            "answer": "1.バラムツ 2.メンダコ 3.シーラカンス 4.メガマウス\n 5.クリオネ 6.リュウグウノツカイ 7.デメニギス\n 8.アカムツ 9.ラブカ 10.タカアシガニ",
+            "image": "seibutu.png"
+        }
+    ],
+    "ユーチューバー": [
+        {
+            "question": "グループユーチューバーのグループ名全て答えよ",
+            "answer": "1.コムドット 2.平成フラミンゴ 3.クレイジーマグネット 4.東海オンエア\n 5.チャンネルがーどまん 6.マナル隊 7.きょんくま\n 8.ジャにのちゃんねる 9.スカイピース 10.エスポワールトライブ",
+            "image": "744B9A06-ECF7-4298-92A3-9A2FFDC6C3B6.png"
+        }
+    ],
+    "アプリ": [
+        {
+            "question": "SNSアプリ10個全て答えよ",
+            "answer": "1.エックス 2.インスタグラム 3.ライン 4.テレグラム\n 5.シグナル 6.ディスコード 7.フェイスブック\n 8.スレッズ 9.ティックトック 10.ユーチューブ",
+            "image": "IMG_2818.png"
+        },
+        {
+            "question": "次のサブスクサービス10個全て答えよ",
+            "answer": "1.ネットフリックス 2.ユーネクスト 3.Dアニメストア 4.ディズニープラス\n 5.フールー 6.アマゾンプライムビデオ 7.DMM TV \n8.Abema TV 9.FOD 10.terasa",
+            "image": "1660C9A1-8EDD-47C5-87F9-B54AE2E8F93C.png"
+        }
+    ],
+    "ゲーム中級": [
+        {
+            "question": "ゲーム会社売上高ランキングTop10全て答えよ",
+            "answer": "1.ソニー 2.任天堂 3.バンダイナムコ 4.ネクソン \n5.スクウェア 6.セガサミー 7.サイバーエージェント\n 8.コナミ 9.ガンホー 10.MIXI",
+            "image": "18_20241111184257.png"
+        },
+        {
+            "question": "2024年現在まで最も売れたゲームTop10全て答えよ",
+            "answer": "1.マインクラフト 2.グランド・セフト・オートV 3.テトリス 4.Wii Sports \n 5.PUBG: BATTLEGROUNDS 6.マリオカート8 / デラックス 7.レッド・デッド・リデンプション2 \n8.The Elder Scrolls V: Skyrim 9.ウィッチャー3 ワイルドハント 10.オーバーウォッチ",
+            "image": "19_20241111191608.png"
+        },
+        {
+            "question": "ポケモン10体の名前全て答えよ",
+            "answer": "1.ネオラント 2.ズガドーン 3.クヌギダマ 4.マスキャパ\n 5.リリーラ 6.シュシュプ 7.オーベム \n8.ガーメイル 9.フィオネ 10.ミノムッチ",
+            "image": "pokkke.png"
+        }
+    ],
+    "天文学初級": [
+        {
+            "question": "星座10個全て答えよ",
+            "answer": "1.さそり座 2.こぐま座 3.オリオン座 4.みなみのさんかく座 \n5.はくちょう座 6.てんびん座 7.いて座 \n8.わし座 9.おおぐま座 10.ヘラクレス座",
+            "image": "20241111-1847_2e1d8a22f72344479cc3519b4598c763.png"
+        }
+    ],
+    "天文学中級": [
+        {
+            "question": "天文学で使う用語10個全て答えよ",
+            "answer": "1.恒星 (Star) 2.惑星 (Planet) 3.衛星 (Satellite) 4.銀河 (Galaxy) \n5.ブラックホール (Black Hole) 6.光年 (Light Year) 7.赤方偏移 (Redshift)\n 8.白色矮星 (White Dwarf) 9.星団 (Star Cluster) 10.星間物質 (Interstellar Medium)",
+            "image": "temnom.png"
+        }
+    ],
+    "ゲーム上級": [
+        {
+            "question": "ゲームを制作した会社名10個全て答えよ",
+            "answer": "1.任天堂 2.ソニー・インタラクティブエンタテインメント 3.バンダイナムコエンターテインメント \n 4.カプコン 5.MIXI 6.Supercell 7.Mojang Studios \n 8.ポノス 9.Level5 10.Sega",
+            "image": "seisaku.png"
+        }
+    ],
+    "ネットミーム": [
+        {
+            "question": "次の画像に対応するネットミーム10個全て答えよ",
+            "answer": "1.21歳、拳で 2.パフェ爺(パフェいわし) 3.プーさんのホームランダービー 4.田代砲 \n5.お前を消す方法 6.バキバキ童貞 7.段ボールガンダム \n8.げっだん 9オンドゥル語 10ギコギコはしません",
+            "image": "meem.png"
+        }
+    ],
+    "お菓子": [
+        {
+            "question": "画像の菓子を販売している会社10個全て答えよ",
+            "answer": "1.ねふれ 2.モンデリーズ・インターナショナル 3.Mars  4.Hershey's \n5.カルビー 6.ロッテ 7.グリコ \n8.株式会社不二家 9.森永製菓株式会社 10.おやつカンパニー",
+            "image": "kasi.png"
+        }
+    ]
+};
+
+const searchInput = document.getElementById('searchInput');
+const quizContainer = document.getElementById('quizContainer');
+
+function displayQuizzes(data) {
+    quizContainer.innerHTML = '';
+    for (const [category, quizzes] of Object.entries(data)) {
+        quizzes.forEach((quiz) => {
+            const quizElement = document.createElement('div');
+            quizElement.classList.add('quiz');
+
+            const questionElement = document.createElement('div');
+            questionElement.classList.add('question');
+            questionElement.textContent = quiz.question;
+
+            const answerElement = document.createElement('div');
+            answerElement.classList.add('answer');
+            answerElement.textContent = quiz.answer;
+
+            // 画像の表示部分を修正 (imagesフォルダから取得)
+            const imageElement = document.createElement('img');
+            imageElement.src = `images/${quiz.image}`;
+            imageElement.alt = quiz.question;
+
+            quizElement.appendChild(questionElement);
+            quizElement.appendChild(answerElement);
+            quizElement.appendChild(imageElement);
+            quizContainer.appendChild(quizElement);
+        });
+    }
+}
+
+function searchQuiz() {
+    const query = searchInput.value.toLowerCase();
+    const filteredData = {};
+
+    for (const [category, quizzes] of Object.entries(quizData)) {
+        const filteredQuizzes = quizzes.filter(quiz =>
+            quiz.question.toLowerCase().includes(query) ||
+            category.toLowerCase().includes(query)
+        );
+
+        if (filteredQuizzes.length > 0) {
+            filteredData[category] = filteredQuizzes;
+        }
+    }
+
+    displayQuizzes(filteredData);
+}
+
+searchInput.addEventListener('input', searchQuiz);
+displayQuizzes(quizData);
+</script>
+
+</body>
+</html>
